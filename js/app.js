@@ -17,19 +17,19 @@ window.FSFORM = {
             document.getElementById('name').focus();
 
             // appending keypres events to validate each input fields
-            document.getElementById('name').addEventListener("keypress",function (ev) { setTimeout(function () {
+            document.getElementById('name').addEventListener("keydown",function (ev) { setTimeout(function () {
                 FSFORM.validateNameFormat(document.forms[0]["user_name"]);
             },200); });
-            document.getElementById('mail').addEventListener("keypress",function (ev) { setTimeout(function () {
+            document.getElementById('mail').addEventListener("keydown",function (ev) { setTimeout(function () {
                 FSFORM.validateEmailFormat(document.forms[0]["user_email"]);
             },200); });
-            document.getElementById('cc-num').addEventListener("keypress",function (ev) { setTimeout(function () {
+            document.getElementById('cc-num').addEventListener("keydown",function (ev) { setTimeout(function () {
                 FSFORM.validateCCNFormat(document.forms[0]["user_cc-num"]);
             },200); });
-            document.getElementById('zip').addEventListener("keypress",function (ev) { setTimeout(function () {
+            document.getElementById('zip').addEventListener("keydown",function (ev) { setTimeout(function () {
                 FSFORM.validateZIPFormat(document.forms[0]["user_zip"]);
             },200); });
-            document.getElementById('cvv').addEventListener("keypress",function (ev) { setTimeout(function () {
+            document.getElementById('cvv').addEventListener("keydown",function (ev) { setTimeout(function () {
                 FSFORM.validateCVVFormat(document.forms[0]["user_cvv"]);
             },200); });
 
@@ -89,14 +89,13 @@ window.FSFORM = {
             // appending the event
             element.addEventListener("change",function (e) {
                 var price = 0;
-                var time = '';
+                var time = e.target.nextSibling.textContent.split("—")[1].split(",")[0].replace(/\s+/g,'');
                 // checking if it's checked
                 if(e.target.checked == true) {
                     // calculating the price which will be added to the total
                      price += parseInt(e.target.nextSibling.textContent.split("$")[1]);
                      if(e.target.name !== 'all') {
                          // parsing out the time and trimming it to compare with the rest of the siblings;
-                         time = e.target.nextSibling.textContent.split("—")[1].split(",")[0].replace(/\s+/g,'');
                          // comparing the time with the rest of the siblings
                          for(var i = 0; i < FSFORM.activity_checkboxes.length; i++) {
                              if(FSFORM.activity_checkboxes[i].nextSibling.textContent.replace(/\s+/g,'').indexOf(time) >= 0 && FSFORM.activity_checkboxes[i].name != e.target.name){
@@ -111,7 +110,16 @@ window.FSFORM = {
                 else {
                     // if it's not checked then just reverting to the previous state
                     price -= parseInt(e.target.nextSibling.textContent.split("$")[1]);
-                    for(var i = 0; i < FSFORM.activity_checkboxes.length; i++) { FSFORM.activity_checkboxes[i].parentElement.classList.remove('disabled'); FSFORM.activity_checkboxes[i].disabled = false; }
+                    if(e.target.name !== 'all') {
+                        // comparing the time with the rest of the siblings
+                        for(var i = 0; i < FSFORM.activity_checkboxes.length; i++) {
+                            if(FSFORM.activity_checkboxes[i].nextSibling.textContent.replace(/\s+/g,'').indexOf(time) >= 0 && FSFORM.activity_checkboxes[i].name != e.target.name){
+                                FSFORM.activity_checkboxes[i].disabled = false;
+                                FSFORM.activity_checkboxes[i].parentElement.classList.remove('disabled');
+                            }
+
+                        }
+                    }
                 }
                 // appending the price
                 document.querySelector("#total span").innerHTML = parseInt(document.querySelector("#total span").innerHTML) + price;
@@ -121,32 +129,32 @@ window.FSFORM = {
         // name validation only if it's not empty
         validateNameFormat: function (name) {
 
-            if(name.value.length <= 0) { name.classList.add("error"); name.placeholder = "Name field can't be empty."; name.focus(); return false; }
-            else {name.classList.remove("error"); name.placeholder = ""; return true;}
+            if(name.value.length <= 0) { if(document.getElementById("name-error") === null) name.insertAdjacentHTML('beforeBegin', '<p id="name-error" class="error">Name field can\'t be empty.</p>'); name.classList.add("error"); name.focus(); return false; }
+            else {name.classList.remove("error"); if(document.getElementById("name-error") !== null) document.getElementById('name-error').remove(); return true;}
         },
     // email format validation
         validateEmailFormat: function (email) {
         var reg = /^(?:[a-z0-9!#$%&amp;'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&amp;'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])$/;
-        if(!reg.test(email.value)) { email.classList.add("error"); email.placeholder = "Please enter a valid email address."; email.focus(); return false; }
-        else {email.classList.remove("error"); email.placeholder = ""; return true;}
+        if(!reg.test(email.value)) { email.classList.add("error"); if(document.getElementById("email-error") === null) email.insertAdjacentHTML('beforeBegin', '<p id="email-error" class="error">Please enter a valid email address.</p>');  email.focus(); return false; }
+        else {email.classList.remove("error");if(document.getElementById("email-error") !== null) document.getElementById('email-error').remove(); return true;}
         },
     // CNN format validation
-    validateCCNFormat: function (ccn) {
+        validateCCNFormat: function (ccn) {
             var reg = /^[0-9]{13,16}$/;
-            if(!reg.test(parseInt(ccn.value.replace(/\s+/g,'')))) { ccn.classList.add("error"); ccn.placeholder = "CCN must be between 13 and 16 digits."; ccn.focus(); return false; }
-            else {ccn.classList.remove("error"); ccn.placeholder = ""; return true;}
+            if(!reg.test(parseInt(ccn.value.replace(/\s+/g,'')))) { ccn.classList.add("error"); if(document.getElementById("ccn-error") === null) ccn.parentElement.parentElement.insertAdjacentHTML('beforeBegin', '<p id="ccn-error" class="error">CCN must be between 13 and 16 digits.</p>');  ccn.focus(); return false; }
+            else {ccn.classList.remove("error"); if(document.getElementById("ccn-error") !== null) document.getElementById('ccn-error').remove(); return true;}
         },
     // ZIP validation
         validateZIPFormat: function (zip) {
             var reg = /^[0-9]{5}$/;
-            if(!reg.test(parseInt(zip.value.replace(/\s+/g,'')))) { zip.classList.add("error"); zip.placeholder = "ZIP must be a 5 digit number."; zip.focus(); return false; }
-            else {zip.classList.remove("error"); zip.placeholder = ""; return true;}
+            if(!reg.test(parseInt(zip.value.replace(/\s+/g,'')))) { zip.classList.add("error"); if(document.getElementById("zip-error") === null) zip.parentElement.parentElement.insertAdjacentHTML('beforeBegin', '<p id="zip-error" class="error">ZIP must be a 5 digit number.</p>'); zip.focus(); return false; }
+            else {zip.classList.remove("error"); if(document.getElementById("zip-error") !== null) document.getElementById('zip-error').remove(); return true;}
         },
     // CVV validation
         validateCVVFormat: function (cvv) {
             var reg = /^[0-9]{3}$/;
-            if(!reg.test(parseInt(cvv.value.replace(/\s+/g,'')))) { cvv.classList.add("error"); cvv.placeholder = "CCV must be a 3 digit number."; cvv.focus(); return false; }
-            else {cvv.classList.remove("error"); cvv.placeholder = ""; return true;}
+            if(!reg.test(parseInt(cvv.value.replace(/\s+/g,'')))) { cvv.classList.add("error"); if(document.getElementById("cvv-error") === null) cvv.parentElement.parentElement.insertAdjacentHTML('beforeBegin', '<p id="cvv-error" class="error">CCV must be a 3 digit number.</p>'); cvv.focus(); return false; }
+            else {cvv.classList.remove("error"); if(document.getElementById("cvv-error") !== null) document.getElementById('ccv-error').remove(); return true;}
         },
 
         // main form validation on submit
